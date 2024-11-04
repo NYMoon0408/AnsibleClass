@@ -1,0 +1,8 @@
+---
+- name: /etc/hosts Test
+  hosts: all
+  tasks:
+    - name: /etc/hosts.j2 test
+      template:
+        src: templates/hosts.j2
+        dest: /root/hosts

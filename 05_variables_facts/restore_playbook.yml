@@ -1,0 +1,65 @@
+---
+#########################################
+# * (ㄱ) 방화벽 포트 제거
+# * (ㄴ) 서비스 중지
+# * (ㄷ) 서비스 설정 파일 제거
+# /etc/httpd/secrets 제거(recusivly) -> file module
+# /var/www/html/index.html 제거      -> file module
+# /var/www/html/.htaccess 제거       -> file module
+# * (ㄹ) 패키지 제거
+- name: Play 01) .htaccess파일을 사용하는 고급 웹 서버 내리기
+  hosts: ansible1.example.com
+  vars:
+    firewall_pkg: firewalld
+    firewall_svc: firewalld
+    web_pkg: httpd
+    web_svc: httpd
+    ssl_pkg: mod_ssl
+    httpdconf_src: files/httpd.conf
+    httpdconf_dest: /etc/httpd/conf/httpd.conf
+    htaccess_src: files/.htaccess
+    secrets_dir: /etc/httpd/secrets
+    secrets_src: files/htpasswd
+    secrets_dest: "{{ secrets_dir }}/htpasswd"
+    web_root: /var/www/html
+  tasks:
+    - name: 1) 방화벽 포트 제거
+      # * http
+      # * https
+      ansible.posix.firewalld:
+        service: "{{ item }}"
+        permanent: true
+        immediate: true
+        state: enabled
+      loop:
+        - http
+        - https
+
+    - name: 2) 서비스 중지
+      ansible.builtin.systemd:
+        name: "{{ web_svc }}"
+        state: stopped
+        enabled: false
+
+    - name: 3) 서비스 설정 파일 제거 - /etc/httpd/secrets 제거(recusivly)
+      ansible.builtin.file:
+        path: "{{ secrets_dir }}"
+        state: absent
+
+    - name: 3) 서비스 설정 파일 제거 - /var/www/html/index.html 제거
+      ansible.builtin.file:
+        path: "{{ web_root }}/index.html"
+        state: absent
+
+    - name: 3) 서비스 설정 파일 제거 - /var/www/html/.htaccess 제거 
+      ansible.builtin.file:
+        path: "{{ web_root }}/.htaccess"
+        state: absent
+
+    - name: 4) 패키지 제거 - {{ web_pkg }}, {{ ssl_pkg }}
+      ansible.builtin.yum:
+        name: "{{ item }}"
+        state: absent
+      loop:
+        - "{{ web_pkg }}"
+        - "{{ ssl_pkg }}"

@@ -1,0 +1,27 @@
+---
+- name: Play 00) Restore_playbook
+  hosts: databases
+  vars:
+    db_packages:
+      - mariadb-server
+      - python3-PyMySQL
+    db_service: mariadb
+    resources_url: http://ansible.example.com
+    config_file_url: "{{ resources_url }}/my.cnf.standard"
+    config_file_dst: /etc/my.cnf
+  tasks:
+    - name: 1) 서비스 파일 삭제 - "{{ config_file_dst }}"
+      ansible.builtin.file:
+        path: "{{ config_file_dst }}"
+        state: absent
+
+    - name: 2) 서비스 중지 - "{{ db_service }}"
+      ansible.builtin.systemd:
+        name: "{{ db_service }}"
+        state: stopped
+        enabled: false
+
+    - name: 1) 패키지 삭제 - "{{ db_packages }}"
+      ansible.builtin.dnf:
+        name: "{{ db_packages }}"
+        state: absent

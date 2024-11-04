@@ -1,0 +1,58 @@
+---
+# tasks file for myvhost
+#########################
+# * (failed_when) 플랫폼 점검 & 버전 점검
+# * - CentOS
+# * - 9
+# * (dnf) 웹 패키지 설치 
+# * (systemd) 웹 서비스 기동
+# * (template) 웹 서버 설정
+#     - /etc/httpd/conf.d/vhosts.conf
+#     - /var/www/vhosts/ansible_hostname/index.html
+#     - notify
+# * (firewalld) 방화벽 포트 등록
+#########################
+- name: 배포판 및 버전 확인
+  ansible.builtin.debug:
+    msg: "[점검] CentOS Stream 9 버전에서만 동작합니다."
+  failed_when: >
+    ansible_distribution != "CentOS" or
+    ansible_distribution_version != "9"
+
+- name: 웹 패키지 설치
+  ansible.builtin.dnf:
+    name: "{{ web_packages }}"
+    state: present
+
+- name: 웹 서비스 기동
+  ansible.builtin.systemd:
+    name: httpd
+    state: started
+    enabled: true
+
+- name: 가상 호스트 설정
+  # 파일 형식이 문제가 없는지 점검
+  ansible.builtin.template:
+    src: vhost.conf.j2
+    dest: /etc/httpd/conf.d/vhosts.conf
+    owner: root
+    group: root
+    mode: '0644'
+    # validate: /usr/sbin/httpd -t -f %s
+    # which httpd -> /usr/sbin/httpd
+  notify: restart httpd
+
+- name: 3) 웹 소스 코드 생성
+  ansible.builtin.copy:
+    src: files/html/
+    dest: "/var/www/vhosts/{{ ansible_hostname }}"
+    owner: root
+    group: root
+
+# - name: 방화벽 포트 등록
+#   ansible.posix.firewalld:
+#     service: "{{ item }}"
+#     permanent: true
+#     immediate: true
+#     state: enabled
+#   loop: "{{ web_rules }}"

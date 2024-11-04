@@ -1,0 +1,25 @@
+---
+- name: 0) DB 서비스 중지 및 패키지 삭제
+  hosts: all
+  gather_facts: true
+  vars:
+    mariadb_packages:
+      - mariadb-server
+      - python3-PyMySQL
+    db_svc: mariadb
+  tasks:
+    ######################################
+    # 1) 서비스 중지 - mariadb
+    # 2) 패키지 삭제 - mariadb-server, python3-PyMySQL
+    ######################################
+    - name: 1) 서비스 중지 - mariadb
+      ansible.builtin.systemd:
+        name: "{{ db_svc }}"
+        state: stopped
+        enabled: false
+
+    - name: 2) 패키지 삭제 - mariadb-server, python3-PyMySQL
+      ansible.builtin.dnf:
+        name: "{{ item }}"
+        state: absent
+      loop: "{{ mariadb_packages }}"

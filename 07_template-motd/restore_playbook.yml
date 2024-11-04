@@ -1,0 +1,9 @@
+---
+- name: configure /etc/motd
+  hosts: all
+  gather_facts: true
+  tasks:
+    - name: configure /etc/motd
+      ansible.builtin.file:
+        path: /etc/motd
+        state: absent

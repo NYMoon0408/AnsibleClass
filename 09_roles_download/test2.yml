@@ -1,0 +1,6 @@
+---
+- name: Demo web
+  hosts: all
+  roles:
+    - NYMoon0408.role_test
+    

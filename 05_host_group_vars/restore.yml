@@ -1,0 +1,12 @@
+---
+- name: Restore.yml
+  hosts: all
+  tasks:
+    - name: 1) 패키지 삭제 - httpd, mariadb-server, php, mutt
+      ansible.builtin.dnf:
+        name:
+          - httpd
+          - mariadb-server
+          - php
+          - mutt
+        state: absent

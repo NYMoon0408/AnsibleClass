@@ -1,0 +1,43 @@
+---
+- name: 0) Play 01) Restore playbook.yml
+  hosts: lamp
+  gather_facts: true
+  vars:
+    firewall: firewalld
+  vars_files:
+    - vars/main.yml
+  tasks:
+    #############################
+    # 1) 방화벽 포트 제거 - http
+    # 2) 서비스 종료 - firewalld, mariadb, httpd
+    # 3) 서비스 설정 삭제 - /var/www/html/index.html
+    # 4) 패키지 삭제 - mariadb-server, httpd
+    #############################
+    - name: 1) 방화벽 포트 제거 - http
+      ansible.posix.firewalld:
+        service: "{{ fw_port }}"
+        permanent: true
+        immediate: true
+        state: "{{ fw_state_disabled }}"
+
+    - name: 2) 서비스 종료 - firewalld, mariadb, httpd
+      ansible.builtin.systemd:
+        name: "{{ item }}"
+        state: stopped
+        enabled: false
+      loop:
+        - "{{ ansible_local.custom.services.db_service }}"
+        - "{{ ansible_local.custom.services.web_service }}"
+        - "{{ firewall }}"
+
+    - name: 3) 서비스 설정 삭제 - /var/www/html/index.html
+      ansible.builtin.file:
+        path: "{{ web_root }}/index.html"
+        state: absent
+
+    - name: 4) 패키지 삭제 - mariadb-server, httpd
+      ansible.builtin.dnf:
+        name:
+          - "{{ ansible_local.custom.packages.db_package }}"
+          - "{{ ansible_local.custom.packages.web_package }}"
+        state: present

@@ -1,0 +1,42 @@
+---
+- name: Uninstall and stop Apache HTTPD
+  hosts: all
+  gather_facts: false
+  tasks:
+    ##########################
+    # 1) 방화벽 포트 제거
+    # 2) 서비스 종료
+    # 3) 서비스 설정 삭제
+    # 4) 패키지 삭제
+    ##########################
+    
+    # 1) 방화벽 포트 제거
+    # * http
+    - name: 1) 방화벽 포트 제거
+      ansible.posix.firewalld:
+        service: http
+        permanent: true
+        immediate: true
+        state: disabled
+    
+    # 2) 서비스 종료
+    # * httpd
+    - name: 2) 서비스 종료
+      ansible.builtin.systemd:
+        name: httpd
+        enabled: false
+        state: stopped
+    
+    # 3) 서비스 설정 삭제 (file)
+    # * /var/www/html/index.html 파일 삭제
+    - name: 3) 서비스 설정 삭제
+      ansible.builtin.file:
+        path: /var/www/html/index.html
+        state: absent
+
+    # 4) 패키지 삭제 (dnf)
+    # * httpd
+    - name: 4) 패키지 삭제
+      ansible.builtin.dnf:
+        name: httpd
+        state: absent

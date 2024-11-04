@@ -1,0 +1,4 @@
+---
+# Variable
+packages:
+  web_pkg: httpd

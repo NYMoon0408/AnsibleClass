@@ -1,0 +1,9 @@
+---
+- name: EPEL package install Playbook
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: 1) epel-release package install
+      ansible.builtin.dnf:
+        name: epel-release
+        state: present

@@ -1,0 +1,10 @@
+---
+- name: Restore
+  hosts: all
+  tasks:
+    - name: Role Test
+      ansible.builtin.include_role:   # 이 방법을 추천
+        name: NYMoon0408.rollbacksvc
+      vars:
+        web_files:
+          - /var/www/html/index.html

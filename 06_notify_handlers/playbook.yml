@@ -1,0 +1,47 @@
+---
+- name: Play 00) 핸들러 구현
+  hosts: databases
+  vars:
+    db_packages:
+      - mariadb-server
+      - python3-PyMySQL
+    db_service: mariadb
+    resources_url: http://ansible.example.com
+    config_file_url: "{{ resources_url }}/my.cnf.standard"
+    config_file_dst: /etc/my.cnf
+  tasks:
+    - name: 1) DB 패키지 설치 - "{{ db_packages }}"
+      ansible.builtin.dnf:
+        name: "{{ db_packages }}"
+        state: present
+      notify:
+        - set db password
+
+    - name: 2) 서비스 기동 - "{{ db_service }}"
+      ansible.builtin.systemd:
+        name: "{{ db_service }}"
+        state: started
+        enabled: true
+
+    - name: 3) 서비스 설정 - "{{ config_file_dst }}"
+      ansible.builtin.get_url:
+        url: "{{ config_file_url }}"
+        dest: "{{ config_file_dst }}"
+        owner: mysql
+        group: mysql
+        force: true
+      notify:
+        - restart db service
+
+  handlers:
+    - name: restart db service
+      service:
+        name: "{{ db_service }}"
+        state: restarted
+
+    - name: set db password
+      mysql_user:
+        name: root
+        password: soldesk1.
+        priv: '*.*:ALL'
+        state: present

@@ -1,0 +1,17 @@
+---
+- name: EPEL package install Playbook
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: 1) epel-release package install
+      ansible.builtin.include_tasks: install_package.yml
+      vars:
+        packages:
+          web_pkg: epel-release
+
+    - name: 2) boxes package install
+      # boxes는 epel-release가 설치된 후 설치
+      ansible.builtin.include_tasks: install_package.yml
+      vars:
+        packages:
+          web_pkg: boxes

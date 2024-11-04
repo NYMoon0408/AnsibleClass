@@ -1,0 +1,21 @@
+---
+- name: Restore playbool.yml
+  hosts: all
+  tasks:
+  - name: 웹패키지 서비스 중지 및 삭제
+    ansible.builtin.import_tasks: tasks/restore_web.yml
+    vars:
+      packages:
+        - httpd
+        - mod_ssl
+      service: httpd
+      file:
+        - /var/www/html/index.html
+
+  - name: 방화벽 서비스 중지 및 포트 제거
+    ansible.builtin.include_tasks: tasks/restore_fw.yml
+    vars:
+      service: firewalld
+      rules:
+        - http
+        - https
